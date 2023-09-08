@@ -1,0 +1,14 @@
+---
+title: "Welcome To My Blog"
+author: "chipmunk-pixel"
+date: "2023-09-09"
+categories: [news]
+---
+
+Maybe its time to "restart" my blog. I've actually been blogging for quite a while previously - though it was more adhoc. 
+
+This blog will place a heightened focus more on engineering and technology - the _doing_ of things. 
+
+**How did I build this blog?**
+
+I decided to use [Quarto](https://quarto.org/) to build this static blog. It provides a way to combine code outputs in a blog format. Perhaps we want to post research results or outcomes! This is a suitable way to do that. 
