@@ -201,6 +201,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ol>
 <p>This works in the gentle boosting framework by using newton steps to update the weights of the model. By having fixed step sizes for updating the weights it ensures that the weights are bounded and outliers won’t over-weigh the model. The original formulation uses scaling in the form of <code>alpha = exp(1)</code>, based on the expoential objective function. In the above formation the scaling is a parameter of the model. This can be interpretted as a modified objective variation to gentle boost instead.</p>
 <p>I think this variation is very simple to understand and implement whilst still being somewhat more effective than not using boosting at all.</p>
+<p>For more information please see an <a href="https://github.com/8bit-pixies/online-gentleboost/">implementation of Gentleboost</a> and the corresponding <a href="https://arxiv.org/pdf/1905.07697.pdf">writeup</a>.</p>
 
 
 
