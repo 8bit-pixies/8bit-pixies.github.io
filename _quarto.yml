@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "Chipmunk Pixel"
+  title: "Pixies"
   navbar:
     right:
       - about.qmd

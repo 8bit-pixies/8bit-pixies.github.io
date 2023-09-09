@@ -1,6 +1,6 @@
 ---
 title: "GentleBoost Algorithm"
-author: "chipmunk-pixel"
+author: "pixies"
 date: "2023-09-09"
 categories: [code, analysis]
 ---
