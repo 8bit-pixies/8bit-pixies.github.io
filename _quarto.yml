@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: docs
+  resources: 
+    - "posts/suno-bark/podcast.mp3"
 
 website:
   title: "Pixies"

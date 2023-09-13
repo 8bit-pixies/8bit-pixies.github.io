@@ -1,0 +1,101 @@
+---
+title: "Generate Podcasts from a Script using Suno Bark!"
+author: "pixies"
+date: "2023-09-15"
+categories: [code, ai]
+---
+
+Today we're taking a look at a text to speech library called Suno. 
+Suno can generate realistic audio from a script.
+
+To get started, simply install it in the normal way using - 
+pip install as per the git repository instructions.
+
+```sh
+pip install git+https://github.com/suno-ai/bark.git
+```
+
+Then to generate the audio, set the voice and download the appropriate weights.
+
+By default, Suno only generates sentences that are at most fourteen seconds long.
+To make it longer, there are some tricks we employ by splitting it up into sentences
+and artificially adding some silence between the sentences.
+
+One way to achieve this is to first split the sentences using `nltk`, though if the sentences are _too_ long, Suno/Bark has a tendency to unnecessarily elongate the audio.
+
+You can see how the script is written and the code to reproduce this audio file in its entirety.
+In the future I may use this to generate podcasts off written scripts and blog posts automatically!
+
+```py
+import re
+
+import nltk
+import numpy as np
+import scipy
+from tqdm import tqdm
+from transformers import AutoModel, AutoProcessor
+
+
+class TextToSpeech:
+    _processor = AutoProcessor.from_pretrained("suno/bark-small")
+    _model = AutoModel.from_pretrained("suno/bark-small")
+    _sampling_rate = _model.generation_config.sample_rate
+    _silence_in_seconds = 0.25
+
+    @classmethod
+    def _generate_from_sentence(cls, sent):
+        voice_preset = "v2/en_speaker_9"
+        inputs = cls._processor(
+            text=[sent],
+            return_tensors="pt",
+            voice_preset=voice_preset,
+        )
+        speech_values = cls._model.generate(**inputs)
+        return speech_values.cpu().numpy().squeeze()
+
+    @classmethod
+    def _export_to_audio(cls, data_array, fname):
+        scipy.io.wavfile.write(fname, rate=cls._sampling_rate, data=data_array)
+
+    @classmethod
+    def generate_audio_from_long_script(cls, script, fname):
+        sentences = nltk.sent_tokenize(re.sub(r"\s+", " ", script))
+
+        silence = np.zeros(int(cls._silence_in_seconds * cls._sampling_rate))  # quarter second of silence
+
+        pieces = []
+        for sentence in tqdm(sentences):
+            audio_array = cls._generate_from_sentence(sentence)
+            pieces += [audio_array, silence.copy()]
+        data_array = np.concatenate(pieces)
+        cls._export_to_audio(data_array, fname)
+
+
+if __name__ == "__main__":
+
+    script = """
+    Welcome - today we're taking a look at a text to speech library called Suno. 
+    Suno can generate realistic audio from a script.
+
+    To get started, simply install it in the normal way using - 
+    pip install as per the git repository instructions.
+    Then to generate the audio, set the voice and download the appropriate weights.
+    The voice that you're currently listening to is english speak number nine.
+
+    By default, Suno only generates sentences that are at most fourteen seconds long.
+    To make it longer, there are some tricks we employ by splitting it up into sentences
+    and artificially adding some silence between the sentences.
+
+    You can see how the script is written and the code to reproduce this audio file in its entirety.
+    In the future I may use this to generate podcasts off written scripts and blog posts automatically!
+    """
+
+    TextToSpeech.generate_audio_from_long_script(script, "podcast.wav")
+```
+
+Listen to the audio here!
+
+<audio controls>
+<source src="podcast.mp3" type="audio/mpeg">
+Your browser does not support the audio element.
+</audio>
