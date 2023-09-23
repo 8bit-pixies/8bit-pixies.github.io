@@ -1,0 +1,18 @@
+---
+title: "A life well lived"
+author: "pixies"
+date: "2023-09-24"
+categories: [essay]
+---
+
+The 21st century is dominated by the concept of _utility_ - that something is done for the grind, or for the purpose of some greater existence ([Effective Altruism](https://www.effectivealtruism.org/) anyone?). It is often difficult to justify anything if it doesn't generate _value_ to someone or something. This goes from corporate planning (e.g. OKRs) and "agile" project management, to the "ad-ification" of content and recommendation systems in social media. 
+
+Perhaps then, we should reframe how we perceive our own life, and the purpose thereof
+
+> A life well lived is a series of personal obsessions shared without expectation of an audience - [source](https://news.ycombinator.com/item?id=34034857)
+
+We may hear of [T-shape employees](https://en.wikipedia.org/wiki/T-shaped_skills) or the generalist versus specialist mindset, but lets face it, could you really claim to be the same specialist from 10 years ago? How many PhD holders can maintain and hold onto their mental acuity when they were still a student (without consistent revision)?
+
+Perhaps a another very real lens related to this issue, is simply the fear of criticism - I know this is a very real fear that I have. Maybe I don't aim as high or don't design as thoroughly because I'm simply "scared" that someone will review and critic my work! In many ways _academic research_ has helped desensitise me against this (in a good way). Criticism if valid, should be treated seriously, but criticism for criticism sake can be safely ignored and disregarded. 
+
+At the end of the day, this really boils down to asking the question of "why" are you doing something, not the result. And that is only something you, dear reader, can answer for you. 
