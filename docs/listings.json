@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/prefect-thoughts/index.html",
+      "/posts/life-well-lived/index.html",
       "/posts/suno-bark/index.html",
       "/posts/welcome/index.html",
       "/posts/gentle-boost/index.html"

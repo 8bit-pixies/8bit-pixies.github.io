@@ -1,0 +1,25 @@
+---
+title: "Initial Thoughts on Prefect"
+author: "pixies"
+date: "2023-10-6"
+categories: [essay]
+---
+
+I've previously looked at Dagster and Prefect as alternatives to Airflow. Initially I dismissed Prefect - Dagster seemed to have more things "out of the box" and just an overall more complete package, but challenges with deploying Dagster in a setup on a Kubernetes cluster without Stateful Sets and restricted RBAC means its difficult to take a concept to Production in a non-prod environment for experimentation. 
+
+One thing that came as a pleasant surprise for prefect was how _easy_ it was to grow out the deployment gradually. We would deploy a simple `python` application via:
+
+```sh
+prefect server start
+```
+
+Then deploy another simple `python` application via:
+
+```sh
+# have `my_flow.serve(...)`
+python -m my_prefect_module
+```
+
+And thats it! We have a flow in production which can operate on a schedule (or via a trigger) with a dashboard. 
+
+Now if we want to separate out compute more, then, we probably need to start diving into the Helm chart, though for simple workflows this makes things much easy to construct PoC and begin pushing the boundaries with a team's maturity and workflows. 
