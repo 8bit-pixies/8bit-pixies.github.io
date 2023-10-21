@@ -26,3 +26,18 @@ cdf(UniformSum("x", 2), evaluate=True)(1.5).doit()
 ```
 
 One _could_ print out the CDF and rewrite it in some kind of closed form solution, but having something handy like this is quite amazing as there doesn't appear to be many "common" packages that implement this kind of interface. 
+
+You might be wondering how did I end up trying to calculate this? This actually comes from figuring out the "true hit" from the statistics displayed by Fire Emblem 6 in their combat calculation. In this formulation, the provided "probability" (out of 100) is actually based on taking the average of 2 random rolls of a 100 face die. To calculate this, we would do:
+
+```py
+hit_rate = 70
+scaling_factor = 1/50  # 2/100
+cdf(UniformSum("x", 2), evaluate=True)(hit_rate * scaling_factor).doit()
+# 0.82
+
+hit_rate = 40
+cdf(UniformSum("x", 2), evaluate=True)(hit_rate * scaling_factor).doit()
+# 0.32
+```
+
+You can see in the game it is more lenient towards higher accuracy numbers and punishes numbers under 50% much more
