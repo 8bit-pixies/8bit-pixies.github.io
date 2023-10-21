@@ -1,5 +1,6 @@
 ---
 title: "Evaluating CDFs using SymPy"
+subtitle: "A look at Fire Emblems 'True Hit'"
 author: "pixies"
 date: "2023-10-20"
 categories: [code]
