@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/coloring-sprites/index.html",
+      "/posts/evaluating-cdfs/index.html",
       "/posts/prefect-thoughts/index.html",
       "/posts/life-well-lived/index.html",
       "/posts/suno-bark/index.html",

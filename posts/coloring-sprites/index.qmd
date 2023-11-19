@@ -1,0 +1,129 @@
+---
+title: "Coloring Sprites"
+author: "pixies"
+date: "2023-11-19"
+categories: [code, pixi.js]
+---
+
+
+<script src="https://pixijs.download/release/pixi.js"></script>
+
+<script>
+let app = new PIXI.Application({ width: 128, height: 128 });
+
+// create a new Sprite from an image path
+const bunny = PIXI.Sprite.from('https://pixijs.com/assets/bunny.png');
+
+// center the sprite's anchor point
+bunny.anchor.set(0.5);
+
+// move the sprite to the center of the screen
+bunny.x = app.screen.width / 2;
+bunny.y = app.screen.height / 2;
+
+const filterMatrix = [[
+    1.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0],
+  [
+    2.0, -0.2, -0.2, 0.0, 0.0,
+    0.1, 0.9, 0.0, 0.0, 0.0,
+    0.1, 0.0, 0.9, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0],
+  [
+    0.9, 0.1, 0.0, 0.0, 0.0,
+    -0.2, 2.0, -0.2, 0.0, 0.0,
+    0.0, 0.1, 0.9, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0],
+  [
+    0.9, 0.0, 0.1, 0.0, 0.0,
+    0.0, 0.9, 0.1, 0.0, 0.0,
+    -0.2, -0.2, 2.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0],
+  [
+    0.8, 0.4, 0.4, 0.0, 0.0,
+    0.4, 0.8, 0.4, 0.0, 0.0,
+    0.4, 0.4, 0.8, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+]
+
+
+const filter = new PIXI.ColorMatrixFilter();
+
+app.stage.filters = [filter];
+
+app.stage.on('pointertap', () =>
+{
+enabled = !enabled;
+app.stage.filters = enabled ? [filter] : null;
+});
+
+app.stage.addChild(bunny);
+
+document.getElementsByTagName("main")[0].appendChild(app.view);
+
+var index = 0;
+
+var seconds = 0;
+app.ticker.add(delta => {
+  seconds += (1 / 60) * delta;
+  if(seconds >= 1.0 ){
+    filter.matrix = filterMatrix[index];
+    index = (index + 1) % filterMatrix.length;
+    seconds = 0;
+  }
+});
+
+</script>
+
+When playing around with Spritemaps, one challenge, is how do we colorize sprites? One way of doing this is using `ColorMapFilter`. `ColorMapFilter` is a $ 5 \times 4 $ array
+where the columns are:
+
+* red
+* green
+* blue
+* alpha
+* offset
+
+and the rows are:
+
+* red
+* green
+* blue
+* alpha
+
+The key parts of `ColorMapFilter` is that it can be used to "brighten" colors and "remove" colors. To start off with the identity matrix will do nothing to the image:
+
+```
+[
+    1.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0
+]
+```
+
+For example, if we want to brighten up the `red` then we can use:
+
+```
+[
+    2.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0
+]
+```
+
+which will increase the intensity of the red pixels, conversely if we want to reduce `red`
+
+```
+[
+    0.5, 0.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0, 0.0
+]
+```
+
+In the Sprite above, we iterate through a set of filters to colorize the sprites in different ways. In this manner we can reuse the same sprite and generate sprites for different "team colors". 
