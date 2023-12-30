@@ -1,0 +1,97 @@
+---
+title: "Revisting A Neural Probabilistic Model"
+author: "pixies"
+date: "2023-12-10"
+categories: [code, pixi.js]
+---
+
+
+The sketch code for neural probabilistic model using GPT style model (or anything from HuggingFace) - we should be able to calculate perplexity and do some kind of language modeling.
+
+
+```py
+neural_ngram_config = GPT2Config(
+    vocab_size=vocab_size, n_positions=max_name_length, n_layer=2, n_embd=256, n_inner=256, n_head=8
+)
+model = GPT2LMHeadModel(neural_ngram_config)
+
+accelerator = Accelerator()
+training_args = TrainingArguments(
+    output_dir="gibberish-sample-model",
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    weight_decay=0.01,
+    num_train_epochs=20,
+    fp16=False,
+)
+
+trainer = accelerator.prepare(
+    Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=lm_dataset["train"],
+        eval_dataset=lm_dataset["test"],
+        data_collator=data_collator,
+    )
+)
+
+trainer.train()
+
+checkpoint_name = "gibberish-gpt2-sample"
+model.save_pretrained(checkpoint_name)
+
+final_model = AutoModelForCausalLM.from_pretrained(checkpoint_name)
+
+
+def evaluate_model(name, final_model):
+    inputs = tokenizer(name, return_tensors="pt")
+    with torch.no_grad():
+        outputs = final_model(inputs['input_ids'], labels=inputs['input_ids'])
+    # Shift so that tokens < n predict n
+    shift_logits = outputs.logits[..., :-1, :].contiguous()
+    shift_labels = inputs['input_ids'][..., 1:].contiguous()
+    # Flatten the tokens
+    loss_fct = torch.nn.CrossEntropyLoss(reduction='none')
+    loss = torch.exp(loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)))
+    return torch.mean(loss, dim=-1)
+
+
+evaluate_model("cheryl".lower(), final_model)
+
+
+# wrap around a pytorch module
+class GPT2PerplexityExport(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, input_ids):
+        batch_size = input_ids.size(0)
+        logits = self.model(input_ids, labels=input_ids)[1]
+        # Shift so that tokens < n predict n
+        shift_logits = logits[..., :-1, :].contiguous()
+        shift_labels = input_ids[..., 1:].contiguous()
+        # Flatten the tokens
+        loss_fct = torch.nn.CrossEntropyLoss(reduction='none')
+        loss = torch.exp(loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))).reshape(batch_size, -1)
+        return torch.mean(loss, dim=-1)
+
+    def export(self):
+        onnx_bytes = io.BytesIO()
+        # output of the node above is the probablities calls "output"
+        torch.onnx.export(
+            self,
+            torch.ones(1, 2).long(),
+            onnx_bytes,
+            dynamic_axes={"input_ids": [0, 1], "perplexity": [0]},
+            input_names=["input_ids"],
+            output_names=["perplexity"],
+        )
+        onnx_model = onnx.load_model_from_string(onnx_bytes.getvalue())
+        return onnx_model
+    
+gpt2_perplexity = GPT2PerplexityExport(model = final_model).export()
+
+with open("gibberish_gpt2_perplexity.onnx", "wb") as f:
+    f.write(gpt2_perplexity.SerializeToString())
+```
