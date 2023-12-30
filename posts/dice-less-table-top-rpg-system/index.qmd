@@ -1,0 +1,44 @@
+---
+title: "Diceless Table Top RPG Systems"
+author: "pixies"
+date: "2023-12-10"
+categories: [bob, diceless, rpg, llm]
+---
+
+It is kind of weird to talk about table top gaming on a blog that is focussed more on AI and machine learning, but there are some important concepts
+related to thinking about the design of LLMs and story telling. Diceless and GM-less (GM is short for game-master) are interesting
+concepts as they remove a level of randomness and focus more on the storytelling aspect behind table top role-playing. There are games like
+[Wanderhome](https://possumcreekgames.com/pages/wanderhome), [Belonging Outside Belonging](https://buriedwithoutceremony.com/belonging), and [ORBITAL](https://mouseholepress.itch.io/orbital)
+fit this kind of criteria (there are more but I wanted to focus on token-based dice-less GM-less TTRPGs). 
+
+How do these systems work? From a high level perspective, a character have three types of actions:
+
+* Strong actions: which alter the story typically for the benefit of the character (e.g. "Provide a solution for an aspect of a material or immediate problem")
+* Basic actions: which are neutral actions and do not progress (or regress) the story (e.g. "Ask: have you heard the news?")
+* Weak actions: which alter the story through performing something outside the characters comfort zone (e.g. "inconvenience yourself to help someone else")
+
+In these systems, characters typically start with 0 tokens and gain takens when they perform a weak action, whilst lose tokens when they perform a strong action. To prevent
+characters from "hoarding" tokens, the system may either cap the maximum number of tokens or provide a discount/force characters to use their tokens. These systems may even be used in games with dice, such as "momentum" in [Ironsworn](https://www.ironswornrpg.com/)
+
+## So How Is This Related to LLMs?
+
+When thinking about LLM generation and how to use prompts to forward a story it, this system can be very powerful from being able to select actions from a character in a balanced manner.
+If a character approaches the story _too_ positively or _too_ negatively, the token system will allow the character to realign itself.  
+
+This level of interactivity can enable an interface for "choose your own adventure" to be in the format:
+
+```
+<Description of Event>
+
+What do you do?
+1. <Strong Action (if available)>
+2. <Basic Action>
+3. <Weak Action (if available)>
+>>> <free text>
+```
+
+Then the free text can be one of the pre-canned actions or something which the LLM will infer. If the action is not possible, as it is deemed to be a 
+strong or weak action then it will re-prompt the user. 
+
+Using this question and answer format can help propell a story and add randomness and shape a story in different directions. At a later stage, I will probably
+try writing stories using LLMs in an automated way using this kind of structured approach.
