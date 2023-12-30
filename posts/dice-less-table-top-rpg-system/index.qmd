@@ -42,3 +42,6 @@ strong or weak action then it will re-prompt the user.
 
 Using this question and answer format can help propell a story and add randomness and shape a story in different directions. At a later stage, I will probably
 try writing stories using LLMs in an automated way using this kind of structured approach.
+
+The advantages of doing it in this manner is that it is simple and we do not need to re-implement the full ruleset of a dungeons and dragons
+setup, we can easily keep track of state and generate text in the "typical" manner. 
