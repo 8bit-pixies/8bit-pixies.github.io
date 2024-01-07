@@ -1,0 +1,30 @@
+---
+title: "LLMs and lack of Interoperability"
+author: "pixies"
+date: "2024-01-07"
+categories: [llm]
+---
+
+As I go through the journey of testing our different LLMs and the nuances, one thing that seems to have stood out is that "knowledge and experience" of LLMs are not really transferable. 
+
+This isn't to do with the _quality_ of different LLMs but rather things from prompt-templates, contraining outputs have different interfaces and different patterns. 
+
+For example:
+
+* `llama.cpp` use grammars to constrain outputs when doing token sampling
+* `openai` have their own function calling approach which has a different format altogether
+* Using external libraries like `guidance` don't really ensure things across different LLMs are consistent (or more specifically it does, but can sometimes just fail to create output altogether)
+
+Maybe there will be structures to generate these things more consistently (or the industry will settle on a standard) but right now you need to be aware of the nuances. 
+
+Example:
+
+**Mistral Instruct** - the template of mistral instruct uses `[/INST]`
+**OpenAI** - the template uses ChatML
+
+Users seemingly need to "test" whether certain prompts are needed (or not) for LLMs which seems wasteful. 
+
+Let's see how the space evolves.
+
+
+
