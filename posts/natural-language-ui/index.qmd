@@ -1,0 +1,147 @@
+---
+title: "Building Natural Language UI using Extract Question Answering"
+author: "pixies"
+date: "2024-03-22"
+categories: []
+---
+
+I've been interested in how to build "safe" natural language interfaces in the last little while, and have been wracking my brain around how to do this in a probabilistic and safe manner. 
+
+Although I don't have everything solve at this point in time, I have at least figured out a system that will at least be:
+
+- bounded
+- can run in memory on modest to perhaps low-end hardware
+- can be used to generate structured output
+
+**Automation Attempt**
+
+My initial automation attempt was to use Question Answering models like: https://huggingface.co/distilbert/distilbert-base-cased-distilled-squad 
+and then crafting generic prompts. 
+
+This actually works fairly well, but can fail spectacularly. It would look something like this:
+
+```py
+@dataclass
+class FunctionArguments:
+    argument: str
+    another_parameter: str
+
+# generate questions
+argument_value_question = "What is the value 'argument'?"
+another_parameter_value_question = "What is the value of 'another parameter'?"
+context = "Execute my function where argument is hello world and my other parameter is foo_bar"
+```
+
+You can try running this in Huggingface UI and you'll get:
+
+```json
+{
+  "score": 0.9491994380950928,
+  "start": 38,
+  "end": 49,
+  "answer": "hello world"
+}
+```
+
+```json
+{
+  "score": 0.9905983209609985,
+  "start": 76,
+  "end": 83,
+  "answer": "foo_bar"
+}
+```
+
+which are quite impressive results, with probabilities about 0.9 
+
+This may get a bit harder without prompt engineering when the questions are a bit more abstract. 
+
+For example, if the fields are:
+
+- `summary_length`
+- `topic`
+
+With a question "What is the value of summary length?", with context "Write me a summary in 5 sentences or less about rainbows"
+
+```json
+{
+  "score": 0.30676600337028503,
+  "start": 22,
+  "end": 33,
+  "answer": "5 sentences"
+}
+```
+
+And with question "What is the value of topic?", with context "Write me a summary in 5 sentences or less about rainbows"
+
+```json
+{
+  "score": 0.4378773868083954,
+  "start": 48,
+  "end": 56,
+  "answer": "rainbows"
+}
+```
+
+However notice with better prompts, if we change the question to "What is the topic we are writing about?", with context "Write me a summary in 5 sentences or less about rainbows"
+
+```json
+{
+  "score": 0.9759015440940857,
+  "start": 48,
+  "end": 56,
+  "answer": "rainbows"
+}
+```
+
+It drastically improves the outcome. This shows that we can't use a "generic" string template which will generalise well across all contexts. 
+
+**Learning to Prompt**
+
+Like many LLM applications the easiest way to generate an appropriate prompt is probably to use OpenAI or Mistral (instruct) to provide some templates. These (much) larger models can help us create ideal prompts (or even multiple prompts) which will enable us to select the best output from a QA model. 
+
+Sample prompt to both ChatGPT 3.5 and Mistral-Instruct:
+
+```
+User
+Given a model schema for:
+
+- `summary_length`
+- `topic`
+
+Give me prompts that will allow me to extract those two fields
+```
+
+ChatGPT output:
+
+> Sure, here are some prompts you can use to extract the fields `summary_length` and `topic`:
+> 
+> For `summary_length`:
+> 1. "Could you please provide the summary length?"
+> 2. "What is the length of the summary?"
+> 3. "How many words/characters is the summary?"
+> 4. "Can you tell me the length of the summary in terms of word count/character count?"
+> 5. "What's the summarized length?"
+> 
+> For `topic`:
+> 1. "What is the topic of the model?"
+> 2. "Could you describe the main topic or subject matter?"
+> 3. "What is the primary focus or theme?"
+> 4. "What is the model primarily about?"
+> 5. "Can you provide the topic or subject of the model?"
+> 
+> These prompts should help you extract the `summary_length` and `topic` from the model schema effectively.
+
+Mistral-Instruct 7b Output
+
+> 1. "Please provide a brief summary of the article or text, keeping it under X words in length." (where X is the maximum value of `summary_length`)
+> 2. "What is the main topic or theme of this text?"
+> 3. "Could you summarize the key points of the article or text in a concise manner, ensuring it does not exceed Y characters in total?" (where Y is > the character limit equivalent of `summary_length`)
+> 4. "Kindly identify and write down the primary subject matter or category of the given text."
+> 5. "Can you create a short abstract or synopsis of the provided document while adhering to our requirement of maintaining a word count below Z?" > (where Z is the number of words equal to `summary_length`)
+> 6. "Which major idea or issue does this text primarily focus on? Please keep your response succinct."
+
+When trying them through the QA model, the results are much more reasonable. These can be used as a starting point for creating a natural language UI with structured outputs, by defering the outcomes to a smaller, more specific model with constrained outputs. 
+
+In the scenario where we are using structured outputs, we would know the structure before at query time. This makes generating the appropriate prompts offline both feasible and a sensible approach to addressing this problem. 
+

@@ -87,3 +87,5 @@ This also makes it plausible to build an appropriate retrieval SDK inhouse - you
 # Next Steps
 
 Demo an application using `duckdb` as the base...
+
+Update: see this repository as a demo https://github.com/8bit-pixies/distiller/tree/main
