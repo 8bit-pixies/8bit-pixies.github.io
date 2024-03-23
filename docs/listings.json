@@ -2,6 +2,11 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/natural-language-ui/index.html",
+      "/posts/a-simple-feature-store/index.html",
+      "/posts/challenge-with-llms/index.html",
+      "/posts/dice-less-table-top-rpg-system/index.html",
+      "/posts/a-neural-probabilistic-model/index.html",
       "/posts/coloring-sprites/index.html",
       "/posts/evaluating-cdfs/index.html",
       "/posts/prefect-thoughts/index.html",
