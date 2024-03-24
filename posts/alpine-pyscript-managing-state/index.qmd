@@ -1,0 +1,153 @@
+---
+title: "Manging State and Reactivity using pyscript and alpine.js"
+author: "pixies"
+date: "2024-03-25"
+categories: [code, alpine.js, pyscript]
+---
+
+I've recently been quite impressed by `alpine.js` and `pyscript` - getting them working together opens up a whole host of possibilities in simplifying the front-end stack and manging business logic. In theory you could package up the logic as a python `whl` and install it as a package in `pyscript`
+
+The configuration would look something like
+
+```toml
+name = "My Pyscript"
+description = "My Pyscript"
+packages = ["dist/my-poetry-wheel-0.1.0-py3-none-any.whl"]
+
+[files]
+"./local_script.py" = ""
+```
+
+Though I'll leave the details for another post. 
+
+---
+
+## A Simple Example
+
+As a simple example, lets presume we have a simple web application that does the following:
+
+- have a button that switches between 'incrementing' or 'decrementing'
+- have a button that increases (or decreases) the counter based on state
+
+This application is trivial to implement in pure `alpine.js`, though as an example, let's implement the button that switches between increment/decrement in Alpine, and the counter logic in python. 
+
+To implement the button it would be:
+
+```html
+<p>
+  Currently set to
+  <strong x-show="$store.data.is_increment == true">increment</strong
+  ><strong x-show="$store.data.is_increment == false">decrement</strong>
+</p>
+<p>Counter value: <strong x-text="$store.data.counter"></strong></p>
+<button
+  @click="$store.data.is_increment = false"
+  x-show="$store.data.is_increment == true"
+>
+  Change to decrement
+</button>
+<button
+  @click="$store.data.is_increment = true"
+  x-show="$store.data.is_increment == false"
+>
+  Change to increment
+</button>
+```
+
+You might notice that we use `$store.data` to keep our state. This is managed via [Alpine's global state management system](https://alpinejs.dev/globals/alpine-store). This is instantiated via
+
+```js
+document.addEventListener("alpine:init", () => {
+  Alpine.store("data", {
+    is_increment: true,
+    counter: 0,
+  });
+});
+```
+
+Then since, `Alpine.store` is now available in the global `window` scope, we can interact with it naturally in `pyscript`. 
+
+```html
+<section class="pyscript">
+  <script type="py" config="./pyscript.toml">
+    from pyscript import window, when
+
+    @when("click", "#update")
+    def update_date():
+      counter_progress = 1 if window.Alpine.store('data').is_increment else -1
+      window.Alpine.store('data').counter = window.Alpine.store('data').counter + counter_progress
+  </script>
+</section>
+```
+
+Putting it all together:
+
+```html
+<html>
+  <head>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script
+      type="module"
+      src="https://pyscript.net/releases/2024.1.1/core.js"
+    ></script>
+  </head>
+  <body>
+    <p
+      x-data="{ message: 'A pyscript/Alpine demo of state' }"
+      x-text="message"
+    ></p>
+    <p>
+      Increment or deprecate a counter, with the counter logic executing in
+      pyscript
+    </p>
+    <div x-data="{}">
+      <p>
+        Currently set to
+        <strong x-show="$store.data.is_increment == true">increment</strong
+        ><strong x-show="$store.data.is_increment == false">decrement</strong>
+      </p>
+      <p>Counter value: <strong x-text="$store.data.counter"></strong></p>
+      <button
+        @click="$store.data.is_increment = false"
+        x-show="$store.data.is_increment == true"
+      >
+        Change to decrement
+      </button>
+      <button
+        @click="$store.data.is_increment = true"
+        x-show="$store.data.is_increment == false"
+      >
+        Change to increment
+      </button>
+      <button id="update">Progress Counter</button>
+
+      <section class="pyscript">
+        <!-- prettier-ignore -->
+        <script type="py" config="./pyscript.toml">
+          from pyscript import window, when
+
+          @when("click", "#update")
+          def update_date():
+            counter_progress = 1 if window.Alpine.store('data').is_increment else -1
+            window.Alpine.store('data').counter = window.Alpine.store('data').counter + counter_progress
+        </script>
+      </section>
+    </div>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("data", {
+          is_increment: true,
+          counter: 0,
+        });
+      });
+    </script>
+  </body>
+</html>
+```
+
+
+
+
