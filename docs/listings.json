@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/alpine-pyscript-managing-state/index.html",
       "/posts/natural-language-ui/index.html",
       "/posts/a-simple-feature-store/index.html",
       "/posts/challenge-with-llms/index.html",
