@@ -1,0 +1,28 @@
+---
+title: "Sortie: An opinonated pyproject.toml"
+author: "pixies"
+date: "2024-04-21"
+categories: [coding]
+---
+
+Today, I'm releasing version 0.1.0 of [Sortie](https://pypi.org/project/sortie/). It is a rust-based python package that is based on [taplo](https://github.com/tamasfe/taplo).
+
+I wrote a lot of this code using two items:
+
+1. `maturin` template, where I explicitly set the engine to `bin` as this isn't designed to be used as a library
+2. using LLMs to help debug and suggest improvements to my rust code
+
+In the end, the majority of the package was actually written in one sitting (although maybe not the most idiomatic rust code). 
+I wanted to have short, concise, and easy to read Rust code with a stripped down feature set. As such, it only formats 
+`pyproject.toml` (so no need to have tokio or optimise for multiple files), only have simplistic CLI arguments, so no need
+for argument parsing tools or comprehensive error handling.
+
+Part of the desire to approach things this way is to focus more on the "barebones" Rust code, rather than the details of particular
+libraries.
+
+## Random Notes
+
+* `panic!` is nice if you're developing internal tooling, but dumping lots of stuff to CLI output isn't great if you want it to be used by other people. Use `eprintln!` instead. (Also of course `panic!` immediately quits, which can be a feature depending on your use case)
+* Make use of slice patterns! They can be really useful in simplifying the mental model for how to approach arrays
+
+One thing that I didn't figure out how to do "sanely" was the serde around library structs. I know that I could have done like a `map` with a `match` rather than coding exhaustively if/else statements. But I'll leave that for next time. 
