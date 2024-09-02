@@ -288,6 +288,7 @@ figure pre {
 
 pre, code {
   font-family: var(--font-family);
+  background: var(--background-primary-alt);
 }
 
 code {

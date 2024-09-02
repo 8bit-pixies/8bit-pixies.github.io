@@ -18,7 +18,14 @@ n = Symbol("n", integer=True)
 uniform_sum = UniformSum("x", n)
 x = Symbol("x")
 cdf(uniform_sum)(x)
-# Piecewise((0, x < 0), (Sum((-1)**_k*(-_k + x)**n*binomial(n, _k), (_k, 0, floor(x)))/factorial(n), n >= x), (1, True))
+# Piecewise(
+#   (0, x < 0),
+#   (
+#     Sum((-1)**_k*(-_k + x)**n*binomial(n, _k), (_k, 0, floor(x)))
+#       / factorial(n), n >= x
+#   ),
+#   (1, True)
+# )
 ```
 
 We can evaluate a particular distribution as follows:

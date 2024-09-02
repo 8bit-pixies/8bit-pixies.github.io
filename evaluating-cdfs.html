@@ -45,7 +45,14 @@ distribution can be addressed as follows:</p>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>uniform_sum <span class="op">=</span> UniformSum(<span class="st">&quot;x&quot;</span>, n)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Symbol(<span class="st">&quot;x&quot;</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>cdf(uniform_sum)(x)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Piecewise((0, x &lt; 0), (Sum((-1)**_k*(-_k + x)**n*binomial(n, _k), (_k, 0, floor(x)))/factorial(n), n &gt;= x), (1, True))</span></span></code></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Piecewise(</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   (0, x &lt; 0),</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   (</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     Sum((-1)**_k*(-_k + x)**n*binomial(n, _k), (_k, 0, floor(x)))</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#       / factorial(n), n &gt;= x</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#   ),</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   (1, True)</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
 <p>We can evaluate a particular distribution as follows:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>cdf(UniformSum(<span class="st">&quot;x&quot;</span>, <span class="dv">2</span>), evaluate<span class="op">=</span><span class="va">True</span>)(<span class="fl">1.5</span>).doit()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 0.875</span></span></code></pre></div>
