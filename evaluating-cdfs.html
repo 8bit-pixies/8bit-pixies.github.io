@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="8bit-pixies" />
+  <title>Evaluating CDFs using SymPy</title>
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="dracula-highlighting.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+<table class="header">
+  <tr>
+    <td class="width-auto">
+      <h1 class="title">Evaluating CDFs using SymPy</h1>
+      <span class="subtitle">A look at Fire Emblems ‘True Hit’</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="width-auto"><a href=https://8bit-pixies.github.io/>Home</a></td>
+  </tr>
+</table>
+<!--<label class="debug-toggle-label"><input type="checkbox" class="debug-toggle" /> Debug mode</label>-->
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul class="incremental">
+<li><a href="#october-20" id="toc-october-20">2023 October 20</a></li>
+</ul>
+</nav>
+<h1 id="october-20">2023 October 20</h1>
+<p>SymPy is pretty useful for symbolic things. One of the items which I
+was surprised by, was the ability to interrogate and get “closed form”
+equations (at least to the most simplified symbolic representation) of
+“unusual” distributions which may not have CDF implementations naturally
+available. You can then use these representations to evaluate them. For
+example the <a
+href="https://en.wikipedia.org/wiki/Irwin%E2%80%93Hall_distribution">Irwin-Hall</a>
+distribution can be addressed as follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sympy.stats <span class="im">import</span> UniformSum, cdf</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sympy <span class="im">import</span> Symbol</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> Symbol(<span class="st">&quot;n&quot;</span>, integer<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>uniform_sum <span class="op">=</span> UniformSum(<span class="st">&quot;x&quot;</span>, n)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Symbol(<span class="st">&quot;x&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>cdf(uniform_sum)(x)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Piecewise((0, x &lt; 0), (Sum((-1)**_k*(-_k + x)**n*binomial(n, _k), (_k, 0, floor(x)))/factorial(n), n &gt;= x), (1, True))</span></span></code></pre></div>
+<p>We can evaluate a particular distribution as follows:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>cdf(UniformSum(<span class="st">&quot;x&quot;</span>, <span class="dv">2</span>), evaluate<span class="op">=</span><span class="va">True</span>)(<span class="fl">1.5</span>).doit()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 0.875</span></span></code></pre></div>
+<p>One <em>could</em> print out the CDF and rewrite it in some kind of
+closed form solution, but having something handy like this is quite
+amazing as there doesn’t appear to be many “common” packages that
+implement this kind of interface.</p>
+<p>You might be wondering how did I end up trying to calculate this?
+This actually comes from figuring out the “true hit” from the statistics
+displayed by Fire Emblem 6 in their combat calculation. In this
+formulation, the provided “probability” (out of 100) is actually based
+on taking the average of 2 random rolls of a 100 face die. To calculate
+this, we would do:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>hit_rate <span class="op">=</span> <span class="dv">70</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>scaling_factor <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="dv">50</span>  <span class="co"># 2/100</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>cdf(UniformSum(<span class="st">&quot;x&quot;</span>, <span class="dv">2</span>), evaluate<span class="op">=</span><span class="va">True</span>)(hit_rate <span class="op">*</span> scaling_factor).doit()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 0.82</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>hit_rate <span class="op">=</span> <span class="dv">40</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>cdf(UniformSum(<span class="st">&quot;x&quot;</span>, <span class="dv">2</span>), evaluate<span class="op">=</span><span class="va">True</span>)(hit_rate <span class="op">*</span> scaling_factor).doit()</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 0.32</span></span></code></pre></div>
+<p>You can see in the game it is more lenient towards higher accuracy
+numbers and punishes numbers under 50% much more</p>
+  <!--<div class="debug-grid"></div>
+  <script src="index.js"></script>-->
+</body>
+</html>

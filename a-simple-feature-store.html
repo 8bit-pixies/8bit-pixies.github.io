@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="8bit-pixies" />
+  <title>A Simple Feature Store</title>
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="dracula-highlighting.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+<table class="header">
+  <tr>
+    <td class="width-auto">
+      <h1 class="title">A Simple Feature Store</h1>
+      <span class="subtitle"></span>
+    </td>
+  </tr>
+  <tr>
+    <td class="width-auto"><a href=https://8bit-pixies.github.io/>Home</a></td>
+  </tr>
+</table>
+<!--<label class="debug-toggle-label"><input type="checkbox" class="debug-toggle" /> Debug mode</label>-->
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul class="incremental">
+<li><a href="#february-24" id="toc-february-24">2024 February 24</a>
+<ul class="incremental">
+<li><a href="#scoping" id="toc-scoping">Scoping</a></li>
+<li><a href="#high-level-design" id="toc-high-level-design">High Level
+Design</a></li>
+<li><a href="#data-model" id="toc-data-model">Data Model</a></li>
+<li><a href="#online-query" id="toc-online-query">Online Query</a></li>
+<li><a href="#publishing-offline" id="toc-publishing-offline">Publishing
+offline</a></li>
+<li><a href="#next-steps" id="toc-next-steps">Next Steps</a></li>
+</ul></li>
+<li><a href="#march-4" id="toc-march-4">2024 March 4</a></li>
+</ul>
+</nav>
+<h1 id="february-24">2024 February 24</h1>
+<p>Feast is winding down (or at least Tecton is moving its
+maintainership status), I thought its time to re-think about “simple”
+feature stores. This isn’t because I think Feast is going away or it
+will fade into obscurity, but rather rethink the patterns and how we
+manage production.</p>
+<h2 id="scoping">Scoping</h2>
+<p>Many feature platform solutions solve both the feature generation,
+online and offline retrieval of features. To simplify the problem space,
+what if we only want to deal with online retrieval and offline
+<em>storage</em>. In this case, we’re ignoring the offline retrieval
+portion of the problem altogether.</p>
+<p>Although this massively reduces the scope of the problem, it also
+massively simplifies the problem space.</p>
+<h2 id="high-level-design">High Level Design</h2>
+<p>If we are focussed predominantly on the online retrieval portion of
+the feature store, then we are executing against a Kappa-style
+architecture.</p>
+<p>Batch Style Feature Publishing:</p>
+<ol class="incremental" type="1">
+<li>Run ETL job</li>
+<li>Separate process to load into online store (e.g. Redis)</li>
+</ol>
+<p>Streaming Style Feature Publishing:</p>
+<ol class="incremental" type="1">
+<li>Run streaming process</li>
+<li>Load data into online store</li>
+<li>Separate process to write data back to offline storage</li>
+</ol>
+<p>The key component here, is deciding on the data model to manage these
+style of features.</p>
+<p>Some of the challenges in approaching things in this way is
+discerning between the different ways data is stored:</p>
+<ul class="incremental">
+<li>as a slowly changing record (e.g. a customer’s profile
+information)</li>
+<li>as an event record (e.g. a customer purchasing an item)</li>
+</ul>
+<p>If we simplify our problem and pretend all information arriving is an
+event then our problem space becomes even easier.</p>
+<h2 id="data-model">Data Model</h2>
+<blockquote>
+<p>Data dominates. If you’ve chosen the right data structures and
+organized things well, the algorithms will almost always be
+self-evident. Data structures, not algorithms, are central to
+programming. - Rob Pike</p>
+</blockquote>
+<p>In the data model a machine learning takes in denormalised data. It
+is generally unnested so that variety of machine learning libraries can
+make use of it. Having it unnested also simplifies the pattern, because
+then data from different sources with different entity keys can be
+combined at inference time in a naive fashion.</p>
+<p>Then the target <em>offline</em> data setup consists of two tables: -
+Feature Set (Latest) - Feature Set (History)</p>
+<p>We can model this (via Python dataclass notation):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FeatureSetHistory:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">id</span>: <span class="bu">int</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    feature_set: Dict[<span class="bu">str</span>, FeatureValue]  <span class="co"># flatten this out in a table</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    create_timestamp: datetime</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FeatureSetLatest:</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">id</span>: <span class="bu">int</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    feature_set: Dict[<span class="bu">str</span>, FeatureValue]  <span class="co"># flatten this out in a table</span></span></code></pre></div>
+<p>From an ETL perspective, both tables should be populated at the same
+time. The online setting will bulk unload the
+<code>FeatureSetLatest</code> information into the appropriate key-value
+store for online inference.</p>
+<p>This is equivalent to modeling data as an EAVT format</p>
+<h2 id="online-query">Online Query</h2>
+<p>From an online query perspective, we would need some metadata which
+contains all possible feature sets, their entity infromation. Then the
+query would be:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>featureset_a, featureset_b, featureset_c <span class="op">=</span> get_feature_set_by_entity_info(entity_info)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>key_value_store.mget([featureset_a, featureset_b, featureset_c])</span></code></pre></div>
+<p>where <code>featureset_a</code>, <code>featureset_b</code>,
+<code>featureset_c</code>, is the appropriate key for the feature sets
+each keyed with the appropriate entity</p>
+<h2 id="publishing-offline">Publishing offline</h2>
+<p>Working backwards, now that we have a table of events we can unravel
+them to a more friendly data warehousing solution, we would have a
+continual ETL job which goes from EAVT to a SCD table, such as via a
+regular ETL process to populate the appropriate data warehouse.</p>
+<p>From a retrieval perspective, the data housing patterns should be
+used to manage the modeling workflows instead of natively using the EAVT
+structure.</p>
+<p>This also makes it plausible to build an appropriate retrieval SDK
+inhouse - you only need to worry about SCD style tables for each feature
+set rather than lots of different types of modeling tables.</p>
+<h2 id="next-steps">Next Steps</h2>
+<p>Demo an application using <code>duckdb</code> as the base…</p>
+<h1 id="march-4">2024 March 4</h1>
+<p>See <a
+href="https://github.com/8bit-pixies/distiller/tree/main">Distiller</a>
+as a demo</p>
+<p>Distiller is a “drop-in” feature store project. It aims to generate
+SQL code using “good” defaults based on existing feature store
+implementations.</p>
+<p>It demonstrates that you do not need to set up any infrastructure
+(besides having access to an existing database) to build machine
+learning pipelines.</p>
+<p>What it is:</p>
+<ul class="incremental">
+<li>Just a SQL generation tool, using <code>sqlalchemy</code> (for
+now)</li>
+<li>Support multi-entity (or at least only if each feature group has one
+single entity, but entity types can be mixed)</li>
+<li>Support feature versioning (or update via a creation timestamp
+field)</li>
+</ul>
+<p>What we aim to do:</p>
+<ul class="incremental">
+<li>Provide SQL generation tools for offline feature retrieval</li>
+<li>Document the semantics and language used in Distiller</li>
+<li>(TODO) Provide SQL generation tools to create a batch online unload
+onto your favourite online serving tool</li>
+<li>(TODO) Provide an opinionated online serving interface</li>
+<li>(TODO) Have a sensible API</li>
+</ul>
+<p>What we’re not:</p>
+<ul class="incremental">
+<li>Feature metadata store (though providing metadata is optional)</li>
+<li>Compute engine, offload that to a database!</li>
+</ul>
+<p>Comparisons and Influences:</p>
+<ul class="incremental">
+<li>vertex.ai for the data preprocessing standards. No need to support
+every possible pattern!</li>
+<li>feast community for the SQL templates</li>
+</ul>
+<p>Future Ideas:</p>
+<ul class="incremental">
+<li>The logic is fairly simple and can be ported away (i.e. not in
+Python). Perhaps we can move the logic to something else and then expose
+appropriate bindings to R, JavaScript, Java etc.</li>
+</ul>
+  <!--<div class="debug-grid"></div>
+  <script src="index.js"></script>-->
+</body>
+</html>

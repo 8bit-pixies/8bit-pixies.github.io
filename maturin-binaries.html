@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="8bit-pixies" />
+  <title>Maturin Binaries</title>
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="dracula-highlighting.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+<table class="header">
+  <tr>
+    <td class="width-auto">
+      <h1 class="title">Maturin Binaries</h1>
+      <span class="subtitle"></span>
+    </td>
+  </tr>
+  <tr>
+    <td class="width-auto"><a href=https://8bit-pixies.github.io/>Home</a></td>
+  </tr>
+</table>
+<!--<label class="debug-toggle-label"><input type="checkbox" class="debug-toggle" /> Debug mode</label>-->
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul class="incremental">
+<li><a href="#april-28" id="toc-april-28">2024 April 28</a></li>
+</ul>
+</nav>
+<h1 id="april-28">2024 April 28</h1>
+<p>I recently had a go at writing binaries that could be installed via
+<code>pypi</code> patterns via Rust. In general it demonstrates how you
+can expose tooling to the python ecosystem with no Python code at
+all!</p>
+<p>For example, this package: https://github.com/8bit-pixies/sortie is a
+basic maturin python package build, with 0 python code. The key “secret
+sauce” lies in this part of the configuration:</p>
+<pre><code>[tool.maturin]
+bindings = &quot;bin&quot;</code></pre>
+<p>That is to say the package when exposed, is used via
+<code>python -m &lt;pkg_name&gt;</code>.</p>
+<p>This has some interesting consequences, such as how tools like
+<code>ruff</code> and others are built with no or limited <a
+href="https://github.com/astral-sh/ruff/discussions/8539">Python library
+support</a>.</p>
+<p>I <em>do</em> like this trend (incl. <code>onnx</code>) where things
+are exposed from a production standpoint <em>not</em> in Python and are
+offloaded elsewhere.</p>
+  <!--<div class="debug-grid"></div>
+  <script src="index.js"></script>-->
+</body>
+</html>

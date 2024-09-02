@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="8bit-pixies" />
+  <title>GentleBoost Algorithm</title>
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="dracula-highlighting.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+<table class="header">
+  <tr>
+    <td class="width-auto">
+      <h1 class="title">GentleBoost Algorithm</h1>
+      <span class="subtitle"></span>
+    </td>
+  </tr>
+  <tr>
+    <td class="width-auto"><a href=https://8bit-pixies.github.io/>Home</a></td>
+  </tr>
+</table>
+<!--<label class="debug-toggle-label"><input type="checkbox" class="debug-toggle" /> Debug mode</label>-->
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul class="incremental">
+<li><a href="#september-9" id="toc-september-9">2023 September
+9</a></li>
+</ul>
+</nav>
+<h1 id="september-9">2023 September 9</h1>
+<p>Often in academic literature, boosting is introduced through <a
+href="https://en.wikipedia.org/wiki/AdaBoost">AdaBoost</a> or maybe
+sometimes they jump straight into <a
+href="https://en.wikipedia.org/wiki/Gradient_boosting">Gradient
+Boosting</a>. In this post, I thought I’ll introduce it in a different
+way, using “Gentle Boosting”, which is far easier to implement and
+understand.</p>
+<p>In Python-esque code, Gentle Boost is implemented as follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode py"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># with training set, &lt;X, y&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>learning_penalty <span class="op">=</span> <span class="dv">1</span><span class="op">/</span><span class="fl">1.1</span>  <span class="co"># a parameter of interest</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> np.array([<span class="fl">1.0</span> <span class="cf">for</span> record <span class="kw">in</span> X.shape[<span class="dv">0</span>]])</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model <span class="kw">in</span> models:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    model.fit(X, y, weights<span class="op">=</span>w)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># update w based on error</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># set record 1 if correctly predicted, -1 if incorrect</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    weight_update_factor <span class="op">=</span> ((y <span class="op">==</span> model.predict(X)) <span class="op">*</span> <span class="dv">2</span>) <span class="op">-</span><span class="dv">1</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    w <span class="op">=</span> w <span class="op">*</span> np.power(learning_penalty, weight_update_factor)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># inference</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>np.mean([model.predict(X) <span class="cf">for</span> model <span class="kw">in</span> models])</span></code></pre></div>
+<p>What’s going on here?</p>
+<ol class="incremental" type="1">
+<li>We train the model based on weights of the observation (higher
+weights of previous model got the prediction wrong, lower weight if the
+previous model got it correct)</li>
+<li>At each step we augment the weights by a fixed pre-known penalty, by
+<code>alpha</code> for correct predictions and <code>1/alpha</code> for
+incorrect predictions.</li>
+<li>For prediction, simply take the average</li>
+</ol>
+<p>This works in the gentle boosting framework by using newton steps to
+update the weights of the model. By having fixed step sizes for updating
+the weights it ensures that the weights are bounded and outliers won’t
+over-weigh the model. The original formulation uses scaling in the form
+of <code>alpha = exp(1)</code>, based on the expoential objective
+function. In the above formation the scaling is a parameter of the
+model. This can be interpretted as a modified objective variation to
+gentle boost instead.</p>
+<p>I think this variation is very simple to understand and implement
+whilst still being somewhat more effective than not using boosting at
+all.</p>
+<p>For more information please see an <a
+href="https://github.com/8bit-pixies/online-gentleboost/">implementation
+of Gentleboost</a> and the corresponding <a
+href="https://arxiv.org/pdf/1905.07697.pdf">writeup</a>.</p>
+  <!--<div class="debug-grid"></div>
+  <script src="index.js"></script>-->
+</body>
+</html>
