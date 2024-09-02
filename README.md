@@ -1,0 +1,1 @@
+The setup is heavilly inspired by https://github.com/owickstrom/the-monospace-web and uses Dracula theme (WIP)

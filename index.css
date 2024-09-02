@@ -169,11 +169,11 @@ p {
 
 strong {
   font-weight: var(--font-weight-bold);
-  color: var(--code-normal);
+  color: var(--text-title-h2);
 }
 em {
   font-style: italic;
-  color: var(--text-on-accent);
+  color: var(--text-title-h4);
 }
 
 sub {
@@ -293,11 +293,13 @@ pre, code {
 code {
   font-weight: var(--font-weight-medium);
   background: var(--background-primary-alt);
+  color: var(--text-title-h2);
 }
 
 code.sourceCode {
   font-weight: var(--font-weight-medium);
-  background: var(--background-primary);
+  background: none;
+  color: var(--text-normal);
 }
 
 figure {
